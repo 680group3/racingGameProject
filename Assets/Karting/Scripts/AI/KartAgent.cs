@@ -238,7 +238,7 @@ namespace KartGame.AI
 
             sensor.AddObservation(m_Acceleration);
         }
-
+/*
         public override void OnActionReceived(float[] vectorAction)
         {
             base.OnActionReceived(vectorAction);
@@ -257,7 +257,7 @@ namespace KartGame.AI
             AddReward((m_Acceleration && !m_Brake ? 1.0f : 0.0f) * AccelerationReward);
             AddReward(m_Kart.LocalSpeed() * SpeedReward);
         }
-
+*/
         public override void OnEpisodeBegin()
         {
             switch (Mode)
