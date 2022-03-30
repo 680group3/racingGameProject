@@ -179,7 +179,10 @@ namespace KartGame.KartSystems
         Vector3 m_LastValidPosition;
         Vector3 m_LastCollisionNormal;
         bool m_HasCollision;
-        bool m_InAir = false;
+		
+	    private const int NUM_WHEELS = 4;
+		private WheelCollider[] wheels = new WheelCollider[NUM_WHEELS];
+		private bool[] wheelsGrounded = new bool[NUM_WHEELS];
 
         public void AddPowerup(StatPowerup statPowerup) => m_ActivePowerupList.Add(statPowerup);
         public void SetCanMove(bool move) => m_CanMove = move;
@@ -235,12 +238,17 @@ namespace KartGame.KartSystems
         {
             Rigidbody = GetComponent<Rigidbody>();
             m_Inputs = GetComponents<IInput>();
-
-            UpdateSuspensionParams(FrontLeftWheel);
-            UpdateSuspensionParams(FrontRightWheel);
-            UpdateSuspensionParams(RearLeftWheel);
-            UpdateSuspensionParams(RearRightWheel);
-
+	      
+		    wheels[0] = FrontLeftWheel;
+	        wheels[1] = FrontRightWheel;
+	        wheels[2] = RearLeftWheel;
+	        wheels[3] = RearRightWheel;
+			
+			for (int i = 0; i < NUM_WHEELS; i++) {
+				wheelsGrounded[i] = false;
+				UpdateSuspensionParams(wheels[i]);
+			}
+           
             m_CurrentGrip = baseStats.Grip;
 
             if (DriftSparkVFX != null)
@@ -282,11 +290,16 @@ namespace KartGame.KartSystems
 
         void FixedUpdate()
         {
-            UpdateSuspensionParams(FrontLeftWheel);
-            UpdateSuspensionParams(FrontRightWheel);
-            UpdateSuspensionParams(RearLeftWheel);
-            UpdateSuspensionParams(RearRightWheel);
-
+			// pretty sure it's not necessary to set these every update
+	        wheels[0] = FrontLeftWheel;
+	        wheels[1] = FrontRightWheel;
+	        wheels[2] = RearLeftWheel;
+	        wheels[3] = RearRightWheel;
+			
+			for (int i = 0; i < NUM_WHEELS; i++) {
+				UpdateSuspensionParams(wheels[i]);
+			}
+           
             GatherInputs();
 
             // apply our powerups to create our finalStats
@@ -294,21 +307,24 @@ namespace KartGame.KartSystems
 
             // apply our physics properties
             Rigidbody.centerOfMass = transform.InverseTransformPoint(CenterOfMass.position);
-
+	
             int groundedCount = 0;
-            if (FrontLeftWheel.isGrounded && FrontLeftWheel.GetGroundHit(out WheelHit hit))
-                groundedCount++;
-            if (FrontRightWheel.isGrounded && FrontRightWheel.GetGroundHit(out hit))
-                groundedCount++;
-            if (RearLeftWheel.isGrounded && RearLeftWheel.GetGroundHit(out hit))
-                groundedCount++;
-            if (RearRightWheel.isGrounded && RearRightWheel.GetGroundHit(out hit))
-                groundedCount++;
-
+			
+			for (int i = 0; i < NUM_WHEELS; i++) {
+				wheelsGrounded[i] = false;
+				UpdateSuspensionParams(wheels[i]);
+           
+	            if (wheels[i].isGrounded && wheels[i].GetGroundHit(out WheelHit hit)) {
+	                groundedCount++;
+					wheelsGrounded[i] = true;
+				}
+			}
+           
             // calculate how grounded and airborne we are
             GroundPercent = (float) groundedCount / 4.0f;
             AirPercent = 1 - GroundPercent;
-
+			// Debug.Log(GroundPercent);
+			
             // apply vehicle physics
             if (m_CanMove)
             {
@@ -415,186 +431,351 @@ namespace KartGame.KartSystems
 
         void MoveVehicle(bool accelerate, bool brake, float turnInput)
         {
-            float accelInput = (accelerate ? 1.0f : 0.0f) - (brake ? 1.0f : 0.0f);
+	        {
+	            float accelInput = (accelerate ? 1.0f : 0.0f) - (brake ? 1.0f : 0.0f);
 
-            // manual acceleration curve coefficient scalar
-            float accelerationCurveCoeff = 5;
-            Vector3 localVel = transform.InverseTransformVector(Rigidbody.velocity);
+	            Vector3 localVel = transform.InverseTransformVector(Rigidbody.velocity);
 
-            bool accelDirectionIsFwd = accelInput >= 0;
-            bool localVelDirectionIsFwd = localVel.z >= 0;
+	            bool accelDirectionIsFwd = accelInput >= 0;
+	            bool localVelDirectionIsFwd = localVel.z >= 0;
 
-            // use the max speed for the direction we are going--forward or reverse.
-            float maxSpeed = localVelDirectionIsFwd ? m_FinalStats.TopSpeed : m_FinalStats.ReverseSpeed;
-            float accelPower = accelDirectionIsFwd ? m_FinalStats.Acceleration : m_FinalStats.ReverseAcceleration;
+	            // use the max speed for the direction we are going--forward or reverse.
+	            float maxSpeed = localVelDirectionIsFwd ? m_FinalStats.TopSpeed : m_FinalStats.ReverseSpeed;
+	            float accelPower = accelDirectionIsFwd ? m_FinalStats.Acceleration : m_FinalStats.ReverseAcceleration;
 
-            float currentSpeed = Rigidbody.velocity.magnitude;
-            float accelRampT = currentSpeed / maxSpeed;
-            float multipliedAccelerationCurve = m_FinalStats.AccelerationCurve * accelerationCurveCoeff;
-            float accelRamp = Mathf.Lerp(multipliedAccelerationCurve, 1, accelRampT * accelRampT);
+	            float currentSpeed = Rigidbody.velocity.magnitude;
+	            float accelRampT = currentSpeed / maxSpeed;
 
-            bool isBraking = (localVelDirectionIsFwd && brake) || (!localVelDirectionIsFwd && accelerate);
+	            // manual acceleration curve coefficient scalar
+	            float accelerationCurveCoeff = 5;
+	            float multipliedAccelerationCurve = m_FinalStats.AccelerationCurve * accelerationCurveCoeff;
+	            float accelRamp = Mathf.Lerp(multipliedAccelerationCurve, 1, accelRampT * accelRampT);
 
-            // if we are braking (moving reverse to where we are going)
-            // use the braking accleration instead
-            float finalAccelPower = isBraking ? m_FinalStats.Braking : accelPower;
+	            bool isBraking = (localVelDirectionIsFwd && brake) || (!localVelDirectionIsFwd && accelerate);
 
-            float finalAcceleration = finalAccelPower * accelRamp;
+	            // if we are braking (moving reverse to where we are going)
+	            // use the braking accleration instead
+	            float finalAccelPower = isBraking ? m_FinalStats.Braking : accelPower;
 
-            // apply inputs to forward/backward
-            float turningPower = IsDrifting ? m_DriftTurningPower : turnInput * m_FinalStats.Steer;
+	            float finalAcceleration = finalAccelPower * accelRamp;
 
-            Quaternion turnAngle = Quaternion.AngleAxis(turningPower, transform.up);
-            Vector3 fwd = turnAngle * transform.forward;
-            Vector3 movement = fwd * accelInput * finalAcceleration * ((m_HasCollision || GroundPercent > 0.0f) ? 1.0f : 0.0f);
+	            // apply inputs to forward/backward
+	            float turningPower = IsDrifting ? m_DriftTurningPower : turnInput * m_FinalStats.Steer;
 
-            // forward movement
-            bool wasOverMaxSpeed = currentSpeed >= maxSpeed;
+	            Quaternion turnAngle = Quaternion.AngleAxis(turningPower, transform.up);
+	            Vector3 fwd = turnAngle * transform.forward;
+	            Vector3 movement = fwd * accelInput * finalAcceleration * ((m_HasCollision || GroundPercent > 0.0f) ? 1.0f : 0.0f);
 
-            // if over max speed, cannot accelerate faster.
-            if (wasOverMaxSpeed && !isBraking) 
-                movement *= 0.0f;
+	            // forward movement
+	            bool wasOverMaxSpeed = currentSpeed >= maxSpeed;
 
-            Vector3 newVelocity = Rigidbody.velocity + movement * Time.fixedDeltaTime;
-            newVelocity.y = Rigidbody.velocity.y;
+	            // if over max speed, cannot accelerate faster.
+	            if (wasOverMaxSpeed && !isBraking) 
+	                movement *= 0.0f;
 
-            //  clamp max speed if we are on ground
-            if (GroundPercent > 0.0f && !wasOverMaxSpeed)
-            {
-                newVelocity = Vector3.ClampMagnitude(newVelocity, maxSpeed);
-            }
+	            Vector3 newVelocity = Rigidbody.velocity + movement * Time.fixedDeltaTime;
+	            newVelocity.y = Rigidbody.velocity.y;
 
-            // coasting is when we aren't touching accelerate
-            if (Mathf.Abs(accelInput) < k_NullInput && GroundPercent > 0.0f)
-            {
-                newVelocity = Vector3.MoveTowards(newVelocity, new Vector3(0, Rigidbody.velocity.y, 0), Time.fixedDeltaTime * m_FinalStats.CoastingDrag);
-            }
+	            //  clamp max speed if we are on ground
+	            if (GroundPercent > 0.0f && !wasOverMaxSpeed)
+	            {
+	                newVelocity = Vector3.ClampMagnitude(newVelocity, maxSpeed);
+	            }
 
-            Rigidbody.velocity = newVelocity;
+	            // coasting is when we aren't touching accelerate
+	            if (Mathf.Abs(accelInput) < k_NullInput && GroundPercent > 0.0f)
+	            {
+	                newVelocity = Vector3.MoveTowards(newVelocity, new Vector3(0, Rigidbody.velocity.y, 0), Time.fixedDeltaTime * m_FinalStats.CoastingDrag);
+	            }
 
-            // Drift
-            if (GroundPercent > 0.0f)
-            {
-                if (m_InAir)
-                {
-                    m_InAir = false;
-                    Instantiate(JumpVFX, transform.position, Quaternion.identity);
-                }
+	            Rigidbody.velocity = newVelocity;
 
-                // manual angular velocity coefficient
-                float angularVelocitySteering = 0.4f;
-                float angularVelocitySmoothSpeed = 20f;
+				for (int i = 0; i < 1; i++) {
+					WheelCollider w = wheels[i];
+					// TODO : all physics need to be done here, and make the current code here 1/4 the strength
+					if (wheelsGrounded[i]) {
+	                	// manual angular velocity coefficient
+	                	float angularVelocitySteering = 0.4f;
+	               	 	float angularVelocitySmoothSpeed = 20f;
 
-                // turning is reversed if we're going in reverse and pressing reverse
-                if (!localVelDirectionIsFwd && !accelDirectionIsFwd) 
-                    angularVelocitySteering *= -1.0f;
+	                	// turning is reversed if we're going in reverse and pressing reverse
+	                	if (!localVelDirectionIsFwd && !accelDirectionIsFwd) 
+	                		angularVelocitySteering *= -1.0f;
+						
+	                	var angularVel = Rigidbody.angularVelocity;
 
-                var angularVel = Rigidbody.angularVelocity;
+	                	// move the Y angular velocity towards our target
+	                	angularVel.y = Mathf.MoveTowards(angularVel.y, turningPower * angularVelocitySteering, Time.fixedDeltaTime * angularVelocitySmoothSpeed);
 
-                // move the Y angular velocity towards our target
-                angularVel.y = Mathf.MoveTowards(angularVel.y, turningPower * angularVelocitySteering, Time.fixedDeltaTime * angularVelocitySmoothSpeed);
+	                	// apply the angular velocity
+	                	Rigidbody.angularVelocity = angularVel;
 
-                // apply the angular velocity
-                Rigidbody.angularVelocity = angularVel;
+	                	// rotate rigidbody's velocity as well to generate immediate velocity redirection
+	               	 	// manual velocity steering coefficient
+	                	float velocitySteering = 25f;
 
-                // rotate rigidbody's velocity as well to generate immediate velocity redirection
-                // manual velocity steering coefficient
-                float velocitySteering = 25f;
+	                	// rotate our velocity based on current steer value
+	                	Rigidbody.velocity = Quaternion.AngleAxis(turningPower * Mathf.Sign(localVel.z) * velocitySteering * m_CurrentGrip * Time.fixedDeltaTime, transform.up) * Rigidbody.velocity;
+					}
+				}
+	            
+	            bool validPosition = false;
+	            if (Physics.Raycast(transform.position + (transform.up * 0.1f), -transform.up, out RaycastHit hit, 3.0f, 1 << 9 | 1 << 10 | 1 << 11)) // Layer: ground (9) / Environment(10) / Track (11)
+	            {
+	                Vector3 lerpVector = (m_HasCollision && m_LastCollisionNormal.y > hit.normal.y) ? m_LastCollisionNormal : hit.normal;
+	                m_VerticalReference = Vector3.Slerp(m_VerticalReference, lerpVector, Mathf.Clamp01(AirborneReorientationCoefficient * Time.fixedDeltaTime * (GroundPercent > 0.0f ? 10.0f : 1.0f)));    // Blend faster if on ground
+	            }
+	            else
+	            {
+	                Vector3 lerpVector = (m_HasCollision && m_LastCollisionNormal.y > 0.0f) ? m_LastCollisionNormal : Vector3.up;
+	                m_VerticalReference = Vector3.Slerp(m_VerticalReference, lerpVector, Mathf.Clamp01(AirborneReorientationCoefficient * Time.fixedDeltaTime));
+	            }
 
-                // If the karts lands with a forward not in the velocity direction, we start the drift
-                if (GroundPercent >= 0.0f && m_PreviousGroundPercent < 0.1f)
-                {
-                    Vector3 flattenVelocity = Vector3.ProjectOnPlane(Rigidbody.velocity, m_VerticalReference).normalized;
-                    if (Vector3.Dot(flattenVelocity, transform.forward * Mathf.Sign(accelInput)) < Mathf.Cos(MinAngleToFinishDrift * Mathf.Deg2Rad))
-                    {
-                        IsDrifting = true;
-                        m_CurrentGrip = DriftGrip;
-                        m_DriftTurningPower = 0.0f;
-                    }
-                }
+	            validPosition = GroundPercent > 0.7f && !m_HasCollision && Vector3.Dot(m_VerticalReference, Vector3.up) > 0.9f;
 
-                // Drift Management
-                if (!IsDrifting)
-                {
-                    if ((WantsToDrift || isBraking) && currentSpeed > maxSpeed * MinSpeedPercentToFinishDrift)
-                    {
-                        IsDrifting = true;
-                        m_DriftTurningPower = turningPower + (Mathf.Sign(turningPower) * DriftAdditionalSteer);
-                        m_CurrentGrip = DriftGrip;
+	            // Airborne / Half on ground management
+	            if (GroundPercent < 0.7f)
+	            {
+	                Rigidbody.angularVelocity = new Vector3(0.0f, Rigidbody.angularVelocity.y * 0.98f, 0.0f);
+	                Vector3 finalOrientationDirection = Vector3.ProjectOnPlane(transform.forward, m_VerticalReference);
+	                finalOrientationDirection.Normalize();
+	                if (finalOrientationDirection.sqrMagnitude > 0.0f)
+	                {
+	                    Rigidbody.MoveRotation(Quaternion.Lerp(Rigidbody.rotation, Quaternion.LookRotation(finalOrientationDirection, m_VerticalReference), Mathf.Clamp01(AirborneReorientationCoefficient * Time.fixedDeltaTime)));
+	                }
+	            }
+	            else if (validPosition)
+	            {
+	                m_LastValidPosition = transform.position;
+	                m_LastValidRotation.eulerAngles = new Vector3(0.0f, transform.rotation.y, 0.0f);
+	            }
 
-                        ActivateDriftVFX(true);
-                    }
-                }
+	            ActivateDriftVFX(IsDrifting && GroundPercent > 0.0f);
+	        }
+			/*
+			sinAngle = (float) Math.sin(angle);
+			cosAngle = (float) Math.cos(angle);
+			sinSteerAngle = (float) Math.sin(-steerAngle);
+			cosSteerAngle = (float) Math.cos(-steerAngle);
 
-                if (IsDrifting)
-                {
-                    float turnInputAbs = Mathf.Abs(turnInput);
-                    if (turnInputAbs < k_NullInput)
-                        m_DriftTurningPower = Mathf.MoveTowards(m_DriftTurningPower, 0.0f, Mathf.Clamp01(DriftDampening * Time.fixedDeltaTime));
+			localVelocity.setX(cosAngle * worldVelocity.getZ() + sinAngle * worldVelocity.getX());
+			localVelocity.setZ(-sinAngle * worldVelocity.getZ() + cosAngle * worldVelocity.getX());
 
-                    // Update the turning power based on input
-                    float driftMaxSteerValue = m_FinalStats.Steer + DriftAdditionalSteer;
-                    m_DriftTurningPower = Mathf.Clamp(m_DriftTurningPower + (turnInput * Mathf.Clamp01(DriftControl * Time.fixedDeltaTime)), -driftMaxSteerValue, driftMaxSteerValue);
+			if (localVelocity.getX() >= 0) {
+				yawSpeed = type.halfWheelbase * angularVelocity;
 
-                    bool facingVelocity = Vector3.Dot(Rigidbody.velocity.normalized, transform.forward * Mathf.Sign(accelInput)) > Mathf.Cos(MinAngleToFinishDrift * Mathf.Deg2Rad);
+				affectedSteeringAngle = (float) Math.atan2(yawSpeed, localVelocity.getX());
 
-                    bool canEndDrift = true;
-                    if (isBraking)
-                        canEndDrift = false;
-                    else if (!facingVelocity)
-                        canEndDrift = false;
-                    else if (turnInputAbs >= k_NullInput && currentSpeed > maxSpeed * MinSpeedPercentToFinishDrift)
-                        canEndDrift = false;
+				sideSlip = (float) Math.atan2(localVelocity.getZ(), localVelocity.getX());
 
-                    if (canEndDrift || currentSpeed < k_NullSpeed)
-                    {
-                        // No Input, and car aligned with speed direction => Stop the drift
-                        IsDrifting = false;
-                        m_CurrentGrip = m_FinalStats.Grip;
-                    }
+				slipAngleFront = sideSlip + affectedSteeringAngle - steerAngle;
+				slipAngleRear = sideSlip - affectedSteeringAngle;
 
-                }
+				weightDiffLongitudinal = (int) (type.heightRatio * weight * accelerationRateLongitudinal);
 
-                // rotate our velocity based on current steer value
-                Rigidbody.velocity = Quaternion.AngleAxis(turningPower * Mathf.Sign(localVel.z) * velocitySteering * m_CurrentGrip * Time.fixedDeltaTime, transform.up) * Rigidbody.velocity;
-            }
-            else
-            {
-                m_InAir = true;
-            }
+				weightDiffLateral = (int) (type.heightRatio * weight * accelerationRateLateral);
 
-            bool validPosition = false;
-            if (Physics.Raycast(transform.position + (transform.up * 0.1f), -transform.up, out RaycastHit hit, 3.0f, 1 << 9 | 1 << 10 | 1 << 11)) // Layer: ground (9) / Environment(10) / Track (11)
-            {
-                Vector3 lerpVector = (m_HasCollision && m_LastCollisionNormal.y > hit.normal.y) ? m_LastCollisionNormal : hit.normal;
-                m_VerticalReference = Vector3.Slerp(m_VerticalReference, lerpVector, Mathf.Clamp01(AirborneReorientationCoefficient * Time.fixedDeltaTime * (GroundPercent > 0.0f ? 10.0f : 1.0f)));    // Blend faster if on ground
-            }
-            else
-            {
-                Vector3 lerpVector = (m_HasCollision && m_LastCollisionNormal.y > 0.0f) ? m_LastCollisionNormal : Vector3.up;
-                m_VerticalReference = Vector3.Slerp(m_VerticalReference, lerpVector, Mathf.Clamp01(AirborneReorientationCoefficient * Time.fixedDeltaTime));
-            }
+				weightFront = weight - weightDiffLongitudinal;
+				weightRear = weight + weightDiffLongitudinal;
 
-            validPosition = GroundPercent > 0.7f && !m_HasCollision && Vector3.Dot(m_VerticalReference, Vector3.up) > 0.9f;
+				weightLeft = weight - weightDiffLateral;
+				weightRight = weight + weightDiffLateral;
 
-            // Airborne / Half on ground management
-            if (GroundPercent < 0.7f)
-            {
-                Rigidbody.angularVelocity = new Vector3(0.0f, Rigidbody.angularVelocity.y * 0.98f, 0.0f);
-                Vector3 finalOrientationDirection = Vector3.ProjectOnPlane(transform.forward, m_VerticalReference);
-                finalOrientationDirection.Normalize();
-                if (finalOrientationDirection.sqrMagnitude > 0.0f)
-                {
-                    Rigidbody.MoveRotation(Quaternion.Lerp(Rigidbody.rotation, Quaternion.LookRotation(finalOrientationDirection, m_VerticalReference), Mathf.Clamp01(AirborneReorientationCoefficient * Time.fixedDeltaTime)));
-                }
-            }
-            else if (validPosition)
-            {
-                m_LastValidPosition = transform.position;
-                m_LastValidRotation.eulerAngles = new Vector3(0.0f, transform.rotation.y, 0.0f);
-            }
+				lateralForceFront = type.corneringStiffnessFront * slipAngleFront;
+				lateralForceFront = Math.min(gripFront, lateralForceFront);
+				lateralForceFront = Math.max(-gripFront, lateralForceFront);
+				lateralForceFront *= weightFront;
 
-            ActivateDriftVFX(IsDrifting && GroundPercent > 0.0f);
+				lateralForceRear = type.corneringStiffnessRear * slipAngleRear;
+				lateralForceRear = Math.min(gripRear, lateralForceRear);
+				lateralForceRear = Math.max(-gripRear, lateralForceRear);
+				lateralForceRear *= weightRear;
+			} else {
+				yawSpeed = type.halfWheelbase * angularVelocity;
+
+				affectedSteeringAngle = (float) Math.atan2(-yawSpeed, -localVelocity.getX());
+
+				sideSlip = (float) Math.atan2(-localVelocity.getZ(), -localVelocity.getX());
+
+				slipAngleFront = sideSlip + affectedSteeringAngle - steerAngle;
+				slipAngleRear = sideSlip - affectedSteeringAngle;
+
+				weightDiffLongitudinal = (int) (type.heightRatio * weight * accelerationRateLongitudinal);
+
+				weightDiffLateral = (int) (type.heightRatio * weight * accelerationRateLateral);
+
+				weightFront = weight - weightDiffLongitudinal;
+				weightRear = weight + weightDiffLongitudinal;
+
+				weightLeft = weight - weightDiffLateral;
+				weightRight = weight + weightDiffLateral;
+
+				lateralForceFront = -type.corneringStiffnessFront * slipAngleFront;
+				lateralForceFront = Math.min(gripFront, lateralForceFront);
+				lateralForceFront = Math.max(-gripFront, lateralForceFront);
+				lateralForceFront *= weightFront;
+
+				lateralForceRear = -type.corneringStiffnessRear * slipAngleRear;
+				lateralForceRear = Math.min(gripRear, lateralForceRear);
+				lateralForceRear = Math.max(-gripRear, lateralForceRear);
+				lateralForceRear *= weightRear;
+			}
+			float trueBrake = brake;
+			if (localVelocity.getX() < 0) {
+				trueBrake = -trueBrake;
+			}
+			rpm += throttle * 100.0f * rpm * type.gr[gear] / type.diffratio * 0.0004f;
+			boolean maxed = false;
+		
+			int random = VSimUtil.getRandom();
+			if (rpm > curve.getMaxRPM()) {
+				rpm = curve.getMaxRPM() + random;
+				maxed = true;
+			}
+
+			if (rpm < curve.getMinRPM()) {
+				rpm = curve.getMinRPM();
+			}
+
+			float max_engine_torque = interp.linearInterpolation(rpm + ((maxed && !clutch) ? random * 5000.0f : 0));
+
+			if (max_engine_torque < 0) {
+				max_engine_torque = 0;
+			}
+
+			if (throttle > 0 || trueBrake > 0) {
+				engine_torque = (throttle - trueBrake) * max_engine_torque;
+			} else {
+				engine_torque = 0;
+			}
+			drive_torque = engine_torque * type.gr[gear] * type.diffratio * type.traneff;
+
+			if (gearboxDamage >= 100) {
+				drive_torque = 0;
+			}
+
+			if (MiscUtil.abs(drive_torque) < 0.1f) {
+				drive_torque = 0.0f;
+			}
+
+			horsepower = (int) (0.737562149 * max_engine_torque * rpm / 5252);
+			float torquePerWheel = drive_torque / 2.0f;
+			float totalRollingResistance = 0.0f;
+			Wheel w;
+			for (int i = 0; i < 4; i++) {
+				w = wheels[i];
+
+				if (i == 0 || i == 1) {
+					if (localVelocity.getX() < 0.0f) {
+						w.angularVelocity = -speedmps;
+					} else {
+						w.angularVelocity = speedmps;
+					}
+				}
+
+				totalRollingResistance += getRollingResistance(i);
+				if (i == 2 || i == 3) {
+					if ((throttle != 0 || trueBrake != 0) && !clutch) {
+						if (speedmps != 0 && gear > 0) {
+							w.slip_ratio = (w.angularVelocity / speedmps) - 1.0f;
+							if (w.slip_ratio > s_curve.getMaxSlip()) {
+								w.slip_ratio = s_curve.getMaxSlip();
+							}
+							if (trueBrake > 0.0f) {
+								if (w.slip_ratio < -1.0f) {
+									w.slip_ratio = -1.0f;
+								}
+							} else {
+								if (w.slip_ratio < 0.0f) {
+									w.slip_ratio = 0.0f;
+								}
+							}
+						} else {
+							int surfaceId = w.surfaceId;
+							if (surfaceId != 1 && surfaceId != 6) {
+								w.slip_ratio += 0.25f;
+							}
+							if (gear == 0) {
+								w.slip_ratio = -0.04f;
+							} else {
+								w.slip_ratio = 0.05f;
+							}
+						}
+						float mu = s_interp.linearInterpolation(w.slip_ratio);
+						float normalForceOnWheel = getWeightOnWheel() + (weightDiffLongitudinal);
+						w.tractionForce = mu * normalForceOnWheel;
+						w.tractionTorque = -(w.tractionForce * wheelRadius) * 2.0f;
+						w.brakeTorque = -(1250.0f * trueBrake);
+
+						if (speedmps == 0) {
+							w.brakeTorque = 0.0f;
+						}
+						w.torque = torquePerWheel + w.tractionTorque + w.brakeTorque;
+						// force = torque / radius
+						if (MiscUtil.abs(w.torque) < 0.1f) {
+							w.torque = 0.0f;
+						}
+						w.force = w.tractionForce;
+
+						w.angularAcceleration = w.torque / systemInertia;
+						w.angularVelocity += DT * w.angularAcceleration;
+					} else {
+						w.slip_ratio = 0.0f;
+						w.force = 0.0f;
+						if (localVelocity.getX() < 0.0f) {
+							w.angularVelocity = -speedmps;
+						} else {
+							w.angularVelocity = speedmps;
+						}
+					}
+				}
+			}
+			if (!clutch) {
+				if (brake == 0) {
+					forceOnRearWheels = (wheels[2].force + wheels[3].force) * 4;
+				} else {
+					forceOnRearWheels = (wheels[2].force + wheels[3].force) * 4;
+				}
+			} else {
+				forceOnRearWheels = 0;
+			}
+
+			resistance = (float) (totalRollingResistance + getAirResistance() + (weight * Math.sin(pitchCline)));
+
+			if (MiscUtil.abs(localVelocity.getX()) < 0.01f) {
+				resistance = 0.0f;
+			}
+			if (gear == 0) {
+				resistance = -resistance;
+			}
+			netForce.setX(forceOnRearWheels - resistance);
+			netForce.setZ(lateralForceRear + lateralForceFront * cosSteerAngle);
+
+			torque = type.b * lateralForceFront - type.c * lateralForceRear;
+
+			localAcceleration.setX(netForce.getX() / type.mass);
+			localAcceleration.setZ(netForce.getZ() / type.mass);
+			angularAcceleration = torque / type.inertia;
+
+			worldAcceleration.setX(cosAngle * localAcceleration.getZ() + sinAngle * localAcceleration.getX());
+			worldAcceleration.setZ(-sinAngle * localAcceleration.getZ() + cosAngle * localAcceleration.getX());
+
+			worldVelocity.setX(worldVelocity.getX() + DT * worldAcceleration.getX());
+			worldVelocity.setZ(worldVelocity.getZ() + DT * worldAcceleration.getZ());
+
+			oldPosition.setTo(worldPosition);
+
+			worldPosition.setX(worldPosition.getX() + DT * worldVelocity.getX());
+			worldPosition.setZ(worldPosition.getZ() + DT * worldVelocity.getZ());
+
+			angularVelocity += DT * angularAcceleration;
+
+			angle += DT * angularVelocity;
+
+			accelerationRateLongitudinal = DT * netForce.getX() / type.mass;
+			accelerationRateLateral = DT * netForce.getZ() / type.mass;
+			rpm -= 0.1f * (rpm * (type.gr[gear] / type.diffratio * 0.25f));
+			*/
         }
     }
 }

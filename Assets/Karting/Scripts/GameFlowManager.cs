@@ -39,9 +39,9 @@ public class GameFlowManager : MonoBehaviour
     public GameState gameState { get; private set; }
 
     public bool autoFindKarts = true;
-    public ArcadeKart playerKart;
+    public Racer playerKart;
 
-    ArcadeKart[] karts;
+    Racer[] karts;
     ObjectiveManager m_ObjectiveManager;
     TimeManager m_TimeManager;
     float m_TimeLoadEndGameScene;
@@ -52,12 +52,12 @@ public class GameFlowManager : MonoBehaviour
     {
         if (autoFindKarts)
         {
-            karts = FindObjectsOfType<ArcadeKart>();
+            karts = FindObjectsOfType<Racer>();
             if (karts.Length > 0)
             {
                 if (!playerKart) playerKart = karts[0];
             }
-            DebugUtility.HandleErrorIfNullFindObject<ArcadeKart, GameFlowManager>(playerKart, this);
+            DebugUtility.HandleErrorIfNullFindObject<Racer, GameFlowManager>(playerKart, this);
         }
 
         m_ObjectiveManager = FindObjectOfType<ObjectiveManager>();
@@ -72,7 +72,7 @@ public class GameFlowManager : MonoBehaviour
         loseDisplayMessage.gameObject.SetActive(false);
 
         m_TimeManager.StopRace();
-        foreach (ArcadeKart k in karts)
+        foreach (Racer k in karts)
         {
 			k.SetCanMove(false);
         }
@@ -90,7 +90,7 @@ public class GameFlowManager : MonoBehaviour
     }
 
     void StartRace() {
-        foreach (ArcadeKart k in karts)
+        foreach (Racer k in karts)
         {
 			k.SetCanMove(true);
         }
