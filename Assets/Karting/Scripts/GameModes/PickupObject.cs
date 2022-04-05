@@ -42,6 +42,7 @@ public class PickupObject : TargetObject
     
     void OnTriggerEnter(Collider other)
     {
+		//Debug.Log("Here " + other.gameObject.tag);
         if ((layerMask.value & 1 << other.gameObject.layer) > 0 && other.gameObject.CompareTag("Player"))
         {
             OnCollect();
