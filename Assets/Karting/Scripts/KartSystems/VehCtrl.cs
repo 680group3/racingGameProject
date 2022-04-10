@@ -75,7 +75,8 @@ public class VehCtrl : MonoBehaviour {
 				Brake(ax);					
 			} 
 			if (Input.GetKey(KeyCode.R)) {
-		        transform.rotation = Quaternion.Euler(0, 0, 0);
+		        //transform.rotation = Quaternion.Euler(0, 0, 0);
+		        this.transform.rotation = Quaternion.LookRotation(this.transform.forward);
 				mrig.velocity = Vector3.zero;
 				mrig.angularVelocity = Vector3.zero;
 		      //  transform.Translate(0, 1, 0);
