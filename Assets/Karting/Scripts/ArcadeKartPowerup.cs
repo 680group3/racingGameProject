@@ -50,7 +50,7 @@ public class ArcadeKartPowerup : MonoBehaviour {
             if (racer)
             { 
                 lastActivatedTimestamp = Time.time;
-                racer.speedBoost();
+                racer.speedPickup();
                 onPowerupActivated.Invoke();
                 isCoolingDown = true;
 

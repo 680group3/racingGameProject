@@ -119,6 +119,10 @@ public class VehCtrl : MonoBehaviour {
 				mrig.angularVelocity = Vector3.zero;
 		      //  transform.Translate(0, 1, 0);
 			}
+			if (Input.GetKey(KeyCode.C))
+            {
+				racer.activateItem();
+            }
 	
 			// stabilization bar simulation ala
 			// https://forum.unity.com/threads/how-to-make-a-physically-real-stable-car-with-wheelcolliders.50643/

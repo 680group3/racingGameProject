@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
+using KartGame.KartSystems.Items;
 using UnityEngine.VFX;
 
 namespace KartGame.KartSystems
@@ -64,6 +65,7 @@ namespace KartGame.KartSystems
         bool m_HasCollision;
 		
 		private Rigidbody mrig;
+        private Item item;
 		
         public void AddPowerup(StatPowerup statPowerup) => m_ActivePowerupList.Add(statPowerup);
         public void SetCanMove(bool move) => m_CanMove = move;
@@ -190,9 +192,23 @@ namespace KartGame.KartSystems
             transform.rotation = Quaternion.Euler(euler);
         }
 
-        public void speedBoost()
+        public void activateItem()
         {
-            this.mrig.AddForce(Vector3.forward * this.boostStrength, ForceMode.Impulse);
+            if (this.item != null)
+            {
+                this.item.activate(this);
+                this.item = null;
+            }
+        }
+
+        public void speedPickup()
+        {
+            this.item = gameObject.AddComponent<SpeedItem>();
+        }
+
+        public Rigidbody getMrig()
+        {
+            return this.mrig;
         }
 
         public float LocalSpeed()
