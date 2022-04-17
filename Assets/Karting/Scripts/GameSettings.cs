@@ -10,4 +10,5 @@ public static class GameSettings
     public static string GamePassword { get; set; }
     public static int CarID { get; set; }
     public static int ColorID { get; set; }
+    public static string Username { get; set; }
 }
