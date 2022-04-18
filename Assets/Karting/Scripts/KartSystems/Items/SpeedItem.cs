@@ -10,7 +10,7 @@ namespace KartGame.KartSystems.Items
 
         public override void activate(Racer racer)
         {
-            racer.getMrig().AddForce(Vector3.forward * this.boostStrength, ForceMode.Impulse);
+            racer.getMrig().AddRelativeForce(Vector3.forward * this.boostStrength, ForceMode.Impulse);
         }
     }
 }
