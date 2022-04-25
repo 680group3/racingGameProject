@@ -59,10 +59,8 @@ public class VehCtrl : MonoBehaviour {
 		racer = GetComponent<Racer>();
 		mrig = GetComponent<Rigidbody>();
 		mrig.centerOfMass = new Vector3(0, 0.3f, 0);
-		Debug.Log("VehCtrl Awake");
 		if (vCam == null) {
 			vCam = FindObjectOfType<CinemachineVirtualCamera>();
-			Debug.Log("vCam " + vCam);
 		}
 		view = GetComponent<PhotonView>();
 		if (view.IsMine) {
