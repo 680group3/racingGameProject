@@ -8,6 +8,7 @@ namespace KartGame.UI
 {
 public class HostSettingsMenu : MonoBehaviourPunCallbacks
 {
+	public TMP_InputField Usernamefield;
 	public TMP_InputField Passwordfield;
 	
     public void SetMaxPlayers(int maxPlayersIndex) {
@@ -27,14 +28,16 @@ public class HostSettingsMenu : MonoBehaviourPunCallbacks
 	}
 	
     public void HostRace() {
+    	GameSettings.Username = Usernamefield.text;
+		Debug.Log(GameSettings.Username);
 		GameSettings.GamePassword = Passwordfield.text;
 		Debug.Log(GameSettings.GamePassword);
 		PhotonNetwork.CreateRoom(GameSettings.GamePassword);
 	}
-	
+
 	public override void OnJoinedRoom()
 	{
-		PhotonNetwork.LoadLevel("UsernameMenu");
+		PhotonNetwork.LoadLevel("MainScene");
 	}
 }
 }
