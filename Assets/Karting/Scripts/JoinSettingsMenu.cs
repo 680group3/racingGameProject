@@ -17,6 +17,8 @@ public class JoinSettingsMenu : MonoBehaviourPunCallbacks
 		Debug.Log(GameSettings.Username);
 		GameSettings.GamePassword = Passwordfield.text;
 		Debug.Log(GameSettings.GamePassword);
+		
+		PhotonNetwork.NickName = GameSettings.Username;
 		PhotonNetwork.JoinRoom(GameSettings.GamePassword);
 	}
 

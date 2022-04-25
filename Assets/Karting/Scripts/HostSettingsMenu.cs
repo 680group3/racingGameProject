@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
 using Photon.Pun;
+using Photon.Realtime;
 
 namespace KartGame.UI
 {
@@ -32,7 +33,9 @@ public class HostSettingsMenu : MonoBehaviourPunCallbacks
 		Debug.Log(GameSettings.Username);
 		GameSettings.GamePassword = Passwordfield.text;
 		Debug.Log(GameSettings.GamePassword);
-		PhotonNetwork.CreateRoom(GameSettings.GamePassword);
+		
+		PhotonNetwork.NickName = GameSettings.Username;
+		PhotonNetwork.CreateRoom(GameSettings.GamePassword, new RoomOptions { MaxPlayers = (byte) GameSettings.MaxPlayers });
 	}
 
 	public override void OnJoinedRoom()

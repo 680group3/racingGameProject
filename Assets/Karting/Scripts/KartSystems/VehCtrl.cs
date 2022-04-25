@@ -3,8 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using KartGame.KartSystems;
 using Photon.Pun;
+using Cinemachine;
+using TMPro;
 
 public class VehCtrl : MonoBehaviour {
+
+	public static GameObject ourPlayer; // our car, the one that IsMine
 	public List<AxleInfo> axleInfos;
 	public float maxMotorTorque;
 	public float maxSteeringAngle;
@@ -17,8 +21,11 @@ public class VehCtrl : MonoBehaviour {
 	float steering;
 	
     public float AntiRoll = 5000.0f;
+    public CinemachineVirtualCamera m_VirtualCam;
 
 	PhotonView view;
+
+	public TMP_Text nameText;
 
 	public void ApplyLocalPositionToVisuals (AxleInfo axleInfo)
 	{
@@ -34,7 +41,6 @@ public class VehCtrl : MonoBehaviour {
 
 	void Start()
 	{
-		
 	}
 
 	void Awake ()
@@ -43,11 +49,16 @@ public class VehCtrl : MonoBehaviour {
 		mrig = GetComponent<Rigidbody>();
 		mrig.centerOfMass = new Vector3(0, 0.3f, 0);
 		view = GetComponent<PhotonView>();
+		if (view.IsMine) {
+            ourPlayer = gameObject;
+        }
 	}
 
 	void FixedUpdate ()
 	{
+		nameText.text = GameSettings.Username;
 		if (!view.IsMine) {
+		//	m_VirtualCam.gameObject.SetActive(false);
 			return;
 		}
 		if (!racer.GetCanMove()) {
