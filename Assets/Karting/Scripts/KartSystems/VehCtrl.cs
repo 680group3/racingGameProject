@@ -2,7 +2,8 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using KartGame.KartSystems;
-    
+using Photon.Pun;
+
 public class VehCtrl : MonoBehaviour {
 	public List<AxleInfo> axleInfos;
 	public float maxMotorTorque;
@@ -16,7 +17,9 @@ public class VehCtrl : MonoBehaviour {
 	float steering;
 	
     public float AntiRoll = 5000.0f;
-	
+
+	PhotonView view;
+
 	public void ApplyLocalPositionToVisuals (AxleInfo axleInfo)
 	{
 		Vector3 position;
@@ -29,15 +32,24 @@ public class VehCtrl : MonoBehaviour {
 		axleInfo.rightWheelMesh.transform.rotation = rotation;
 	}
 
+	void Start()
+	{
+		
+	}
+
 	void Awake ()
 	{
 		racer = GetComponent<Racer>();
 		mrig = GetComponent<Rigidbody>();
 		mrig.centerOfMass = new Vector3(0, 0.3f, 0);
+		view = GetComponent<PhotonView>();
 	}
 
 	void FixedUpdate ()
 	{
+		if (!view.IsMine) {
+			return;
+		}
 		if (!racer.GetCanMove()) {
 			return;
 		}

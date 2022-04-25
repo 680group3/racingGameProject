@@ -2,10 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using TMPro;
+using Photon.Pun;
 
 namespace KartGame.UI
 {
-public class HostSettingsMenu : MonoBehaviour
+public class HostSettingsMenu : MonoBehaviourPunCallbacks
 {
 	public TMP_InputField Passwordfield;
 	
@@ -28,6 +29,12 @@ public class HostSettingsMenu : MonoBehaviour
     public void HostRace() {
 		GameSettings.GamePassword = Passwordfield.text;
 		Debug.Log(GameSettings.GamePassword);
+		PhotonNetwork.CreateRoom(GameSettings.GamePassword);
+	}
+	
+	public override void OnJoinedRoom()
+	{
+		PhotonNetwork.LoadLevel("UsernameMenu");
 	}
 }
 }
