@@ -21,11 +21,11 @@ public class VehCtrl : MonoBehaviour {
 	float steering;
 	
     public float AntiRoll = 5000.0f;
-    public CinemachineVirtualCamera m_VirtualCam;
 
 	PhotonView view;
 
 	public TMP_Text nameText;
+    private CinemachineVirtualCamera vCam;
 
 	public void ApplyLocalPositionToVisuals (AxleInfo axleInfo)
 	{
@@ -41,6 +41,17 @@ public class VehCtrl : MonoBehaviour {
 
 	void Start()
 	{
+        
+		string name = null;
+		if (view.InstantiationData != null) {
+  			name = (string)view.InstantiationData[0];
+		}
+
+        if (name != null) {
+            nameText.text = name;
+        } else {
+            nameText.text = view.Owner.NickName;
+        }
 	}
 
 	void Awake ()
@@ -48,17 +59,23 @@ public class VehCtrl : MonoBehaviour {
 		racer = GetComponent<Racer>();
 		mrig = GetComponent<Rigidbody>();
 		mrig.centerOfMass = new Vector3(0, 0.3f, 0);
+		Debug.Log("VehCtrl Awake");
+		if (vCam == null) {
+			vCam = FindObjectOfType<CinemachineVirtualCamera>();
+			Debug.Log("vCam " + vCam);
+		}
 		view = GetComponent<PhotonView>();
 		if (view.IsMine) {
             ourPlayer = gameObject;
+            vCam.Follow = transform;
+			vCam.LookAt = transform;
         }
 	}
 
 	void FixedUpdate ()
 	{
-		nameText.text = GameSettings.Username;
+
 		if (!view.IsMine) {
-		//	m_VirtualCam.gameObject.SetActive(false);
 			return;
 		}
 		if (!racer.GetCanMove()) {

@@ -6,15 +6,17 @@ using Cinemachine;
 public class TextFaceCamera : MonoBehaviour
 {
 	
-    public CinemachineVirtualCamera myCamera;
+    private CinemachineVirtualCamera vCam;
 	
     // Start is called before the first frame update
     void Start()
     {
-
+		if (vCam == null) {
+			vCam = FindObjectOfType<CinemachineVirtualCamera>();
+		}
     }
 	void LateUpdate () {
-		transform.LookAt(transform.position + myCamera.transform.rotation * Vector3.forward, myCamera.transform.rotation * Vector3.up);
+		transform.LookAt(transform.position + vCam.transform.rotation * Vector3.forward, vCam.transform.rotation * Vector3.up);
 		//transform.rotation = Quaternion.LookRotation( transform.position - Camera.main.transform.position );
 	}
 }
