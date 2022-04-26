@@ -764,6 +764,7 @@ MonoBehaviour:
   FrontRightWheel: {fileID: 2451546363725671132}
   RearLeftWheel: {fileID: 2451546363439809166}
   RearRightWheel: {fileID: 2451546362441955593}
+  boostStrength: 50000
   GroundLayers:
     serializedVersion: 2
     m_Bits: 4294967291
