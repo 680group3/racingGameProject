@@ -3,10 +3,11 @@ using UnityEngine;
 using UnityEngine.Playables;
 using KartGame.KartSystems;
 using UnityEngine.SceneManagement;
+using Photon.Pun;
 
 public enum GameState{Play, Won, Lost}
 
-public class GameFlowManager : MonoBehaviour
+public class GameFlowManager : MonoBehaviourPunCallbacks
 {
     [Header("Parameters")]
     [Tooltip("Duration of the fade-to-black at the end of the game")]
@@ -38,6 +39,15 @@ public class GameFlowManager : MonoBehaviour
 
     public GameState gameState { get; private set; }
 
+    public GameObject playerPrefab;
+    
+    public float minX; 
+    public float maxX;
+    public float minY; 
+    public float maxY; 
+    public float minZ;
+    public float maxZ;
+    
     public bool autoFindKarts = true;
     public Racer playerKart;
 
@@ -50,6 +60,16 @@ public class GameFlowManager : MonoBehaviour
 
     void Start()
     {
+        if (PhotonNetwork.IsConnected) {
+            Debug.Log("Connected, starting game");
+            object[] instanceData = new object[1];
+            instanceData[0] = (string)GameSettings.Username;
+   
+            Vector3 randpos = new Vector3(Random.Range(minX, maxX), Random.Range(minY, maxY), Random.Range(minZ, maxZ));
+            GameObject pl = PhotonNetwork.Instantiate(playerPrefab.name, randpos, Quaternion.identity, 0, instanceData);
+
+        }
+
         if (autoFindKarts)
         {
             karts = FindObjectsOfType<Racer>();
