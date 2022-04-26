@@ -2,8 +2,13 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 using KartGame.KartSystems;
-    
+using Photon.Pun;
+using Cinemachine;
+using TMPro;
+
 public class VehCtrl : MonoBehaviour {
+
+	public static GameObject ourPlayer; // our car, the one that IsMine
 	public List<AxleInfo> axleInfos;
 	public float maxMotorTorque;
 	public float maxSteeringAngle;
@@ -16,7 +21,12 @@ public class VehCtrl : MonoBehaviour {
 	float steering;
 	
     public float AntiRoll = 5000.0f;
-	
+
+	PhotonView view;
+
+	public TMP_Text nameText;
+    private CinemachineVirtualCamera vCam;
+
 	public void ApplyLocalPositionToVisuals (AxleInfo axleInfo)
 	{
 		Vector3 position;
@@ -29,15 +39,43 @@ public class VehCtrl : MonoBehaviour {
 		axleInfo.rightWheelMesh.transform.rotation = rotation;
 	}
 
+	void Start()
+	{
+        
+		string name = null;
+		if (view.InstantiationData != null) {
+  			name = (string)view.InstantiationData[0];
+		}
+
+        if (name != null) {
+            nameText.text = name;
+        } else {
+            nameText.text = view.Owner.NickName;
+        }
+	}
+
 	void Awake ()
 	{
 		racer = GetComponent<Racer>();
 		mrig = GetComponent<Rigidbody>();
 		mrig.centerOfMass = new Vector3(0, 0.3f, 0);
+		if (vCam == null) {
+			vCam = FindObjectOfType<CinemachineVirtualCamera>();
+		}
+		view = GetComponent<PhotonView>();
+		if (view.IsMine) {
+            ourPlayer = gameObject;
+            vCam.Follow = transform;
+			vCam.LookAt = transform;
+        }
 	}
 
 	void FixedUpdate ()
 	{
+
+		if (!view.IsMine) {
+			return;
+		}
 		if (!racer.GetCanMove()) {
 			return;
 		}
@@ -75,7 +113,8 @@ public class VehCtrl : MonoBehaviour {
 				Brake(ax);					
 			} 
 			if (Input.GetKey(KeyCode.R)) {
-		        transform.rotation = Quaternion.Euler(0, 0, 0);
+		        //transform.rotation = Quaternion.Euler(0, 0, 0);
+		        this.transform.rotation = Quaternion.LookRotation(this.transform.forward);
 				mrig.velocity = Vector3.zero;
 				mrig.angularVelocity = Vector3.zero;
 		      //  transform.Translate(0, 1, 0);
