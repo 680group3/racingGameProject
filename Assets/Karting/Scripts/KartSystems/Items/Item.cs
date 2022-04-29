@@ -15,7 +15,7 @@ namespace KartGame.KartSystems.Items
             if (rb)
             {
                 var racer = rb.GetComponent<Racer>();
-                if (racer)
+                if (racer && racer.getItem() == null)
                 {
                     this.pickup(racer);
                     this.gameObject.SetActive(false);

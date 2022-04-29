@@ -206,9 +206,19 @@ namespace KartGame.KartSystems
             this.item = gameObject.AddComponent<SpeedItem>();
         }
 
+        public void normalRocketPickup()
+        {
+            this.item = gameObject.AddComponent<NormalRocketItem>();
+        }
+
         public Rigidbody getMrig()
         {
             return this.mrig;
+        }
+
+        public Item getItem()
+        {
+            return this.item;
         }
 
         public float LocalSpeed()
