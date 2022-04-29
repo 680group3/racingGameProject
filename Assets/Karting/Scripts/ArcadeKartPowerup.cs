@@ -4,7 +4,7 @@ using UnityEngine.Events;
 
 public class ArcadeKartPowerup : MonoBehaviour {
 
-    public ArcadeKart.StatPowerup boostStats = new ArcadeKart.StatPowerup
+    public Racer.StatPowerup boostStats = new Racer.StatPowerup
     {
         MaxTime = 5
     };
@@ -45,12 +45,12 @@ public class ArcadeKartPowerup : MonoBehaviour {
         var rb = other.attachedRigidbody;
         if (rb) {
 
-            var kart = rb.GetComponent<ArcadeKart>();
+            var racer = rb.GetComponent<Racer>();
 
-            if (kart)
+            if (racer)
             { 
                 lastActivatedTimestamp = Time.time;
-                kart.AddPowerup(this.boostStats);
+                racer.speedPickup();
                 onPowerupActivated.Invoke();
                 isCoolingDown = true;
 

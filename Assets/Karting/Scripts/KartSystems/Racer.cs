@@ -1,6 +1,7 @@
 ﻿using System;
 using UnityEngine;
 using System.Collections.Generic;
+using KartGame.KartSystems.Items;
 using UnityEngine.VFX;
 
 namespace KartGame.KartSystems
@@ -41,6 +42,11 @@ namespace KartGame.KartSystems
         public WheelCollider RearLeftWheel;
         public WheelCollider RearRightWheel;
 
+        [Header("Speed Boost")]
+        [Tooltip("The strength of the impulse force applied when activating a speed boost.")]
+        public int boostStrength = 50000;
+
+        [Header("Misc.")]
         [Tooltip("Which layers the wheels will detect.")]
         public LayerMask GroundLayers = Physics.DefaultRaycastLayers;
 
@@ -59,6 +65,7 @@ namespace KartGame.KartSystems
         bool m_HasCollision;
 		
 		private Rigidbody mrig;
+        private Item item;
 		
         public void AddPowerup(StatPowerup statPowerup) => m_ActivePowerupList.Add(statPowerup);
         public void SetCanMove(bool move) => m_CanMove = move;
@@ -183,6 +190,25 @@ namespace KartGame.KartSystems
             Vector3 euler = transform.rotation.eulerAngles;
             euler.x = euler.z = 0f;
             transform.rotation = Quaternion.Euler(euler);
+        }
+
+        public void activateItem()
+        {
+            if (this.item != null)
+            {
+                this.item.activate(this);
+                this.item = null;
+            }
+        }
+
+        public void speedPickup()
+        {
+            this.item = gameObject.AddComponent<SpeedItem>();
+        }
+
+        public Rigidbody getMrig()
+        {
+            return this.mrig;
         }
 
         public float LocalSpeed()
