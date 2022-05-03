@@ -4,7 +4,6 @@ namespace KartGame.KartSystems.Items
 {
     public abstract class Item : MonoBehaviour
     {
-        public GameObject item;
         public abstract void activate(Racer racer);
 
         public abstract void pickup(Racer racer);

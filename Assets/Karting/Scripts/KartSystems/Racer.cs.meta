@@ -3,7 +3,17 @@ guid: fba76a2cd30de4c03888eebd971fa070
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
-  defaultReferences: []
+  defaultReferences:
+  - DriftSparkVFX: {instanceID: 0}
+  - DriftTrailPrefab: {instanceID: 0}
+  - JumpVFX: {instanceID: 0}
+  - NozzleVFX: {instanceID: 0}
+  - FrontLeftWheel: {instanceID: 0}
+  - FrontRightWheel: {instanceID: 0}
+  - RearLeftWheel: {instanceID: 0}
+  - RearRightWheel: {instanceID: 0}
+  - rocketPrefab: {fileID: 1192602031436560, guid: d0d7969717e1fc54c984cc313d6d4b81,
+      type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 
