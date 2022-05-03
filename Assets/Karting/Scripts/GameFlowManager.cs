@@ -39,7 +39,7 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
 
     public GameState gameState { get; private set; }
 
-    public GameObject playerPrefab;
+    public GameObject[] playerPrefabs;
     
     public float minX; 
     public float maxX;
@@ -66,11 +66,11 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
             Debug.Log("Connected, starting game");
             object[] instanceData = new object[1];
             instanceData[0] = (string)GameSettings.Username;
-   
+            
             Vector3 startpos = spawnLocs[PhotonNetwork.LocalPlayer.ActorNumber - 1].position;
 
             //Vector3 randpos = new Vector3(Random.Range(minX, maxX), Random.Range(minY, maxY), Random.Range(minZ, maxZ));
-            GameObject pl = PhotonNetwork.Instantiate(playerPrefab.name, startpos, Quaternion.identity, 0, instanceData);
+            GameObject pl = PhotonNetwork.Instantiate(playerPrefabs[GameSettings.ColorID].name, startpos, Quaternion.identity, 0, instanceData);
 
         }
 
