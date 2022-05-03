@@ -19,12 +19,13 @@ public class JoinSettingsMenu : MonoBehaviourPunCallbacks
 		Debug.Log(GameSettings.GamePassword);
 		
 		PhotonNetwork.NickName = GameSettings.Username;
+		Debug.Log("Joining... ");
 		PhotonNetwork.JoinRoom(GameSettings.GamePassword);
 	}
 
 	public override void OnJoinedRoom()
 	{
-		PhotonNetwork.LoadLevel("MainScene");
+		// doesnt get called because we have PhotonNetwork.AutomaticallySyncScene set to true
 	}
 }
 }
