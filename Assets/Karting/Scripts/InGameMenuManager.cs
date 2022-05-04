@@ -1,6 +1,10 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using Photon.Pun;
+using Photon.Realtime;
+using System.Collections;
 
 public class InGameMenuManager : MonoBehaviour
 {
@@ -80,7 +84,7 @@ public class InGameMenuManager : MonoBehaviour
         {
        //     Cursor.lockState = CursorLockMode.None;
           //  Cursor.visible = true;
-            Time.timeScale = 0f;
+            Time.timeScale = 1f;
             AudioUtility.SetMasterVolume(volumeWhenMenuOpen);
 
             EventSystem.current.SetSelectedGameObject(null);
@@ -108,5 +112,17 @@ public class InGameMenuManager : MonoBehaviour
     public void OnShowControlButtonClicked(bool show)
     {
         controlImage.SetActive(show);
+    }
+
+    public void LoadMenu()
+    {
+        StartCoroutine(DisconnectAndLoad());
+    }
+    IEnumerator DisconnectAndLoad()
+    {
+        PhotonNetwork.LeaveRoom();
+        while (PhotonNetwork.InRoom)
+            yield return null;
+        SceneManager.LoadScene("IntroMenu");
     }
 }
