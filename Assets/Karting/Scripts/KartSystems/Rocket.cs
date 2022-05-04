@@ -6,7 +6,7 @@ namespace Assets.Karting.Scripts.KartSystems
     public class Rocket : MonoBehaviour
     {
         [SerializeField]
-        private float speed = 10.0f;
+        private float speed = 55.0f;
 
         void Update()
         {
