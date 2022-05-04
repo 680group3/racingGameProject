@@ -12,8 +12,7 @@ MonoImporter:
   - FrontRightWheel: {instanceID: 0}
   - RearLeftWheel: {instanceID: 0}
   - RearRightWheel: {instanceID: 0}
-  - rocketPrefab: {fileID: 1192602031436560, guid: d0d7969717e1fc54c984cc313d6d4b81,
-      type: 3}
+  - rocket: {fileID: 1192602031436560, guid: d0d7969717e1fc54c984cc313d6d4b81, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

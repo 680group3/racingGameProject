@@ -49706,8 +49706,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 288cfa6b84bcfb44f9714e82a94dfbcf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rocketPrefab: {fileID: 1192602031436560, guid: d0d7969717e1fc54c984cc313d6d4b81,
-    type: 3}
+  prefab: {fileID: 1192602031436560, guid: d0d7969717e1fc54c984cc313d6d4b81, type: 3}
 --- !u!65 &1406545959
 BoxCollider:
   m_ObjectHideFlags: 0
