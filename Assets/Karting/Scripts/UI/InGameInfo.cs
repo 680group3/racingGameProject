@@ -16,7 +16,8 @@ namespace KartGame.UI
         // Update is called once per frame
         void Update()
         {
-            float speed = VehCtrl.ourPlayer.GetComponent<Rigidbody>().velocity.magnitude;
+            Vector3 vel = VehCtrl.ourPlayer.GetComponent<Rigidbody>().velocity;
+            float speed = Mathf.Sqrt(vel.x * vel.x + vel.z * vel.z);
             Speed.text = "Speed: " + string.Format($"{Mathf.FloorToInt(speed * 3.6f)} km/h");
         }
     }
