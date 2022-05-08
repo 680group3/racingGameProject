@@ -21,7 +21,7 @@ namespace KartGame.Track
         [Tooltip("Finished lap info will be displayed under this parent.")]
         public UITable finishedLapsParent; 
 
-        private List<float> finishedLapTimes = new List<float>();
+        public List<float> finishedLapTimes = new List<float>();
 
         private float currentLapStartTime;
 

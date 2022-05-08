@@ -62,8 +62,6 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
     ObjectiveManager m_ObjectiveManager;
     TimeManager m_TimeManager;
     float m_TimeLoadEndGameScene;
-    string m_SceneToLoad;
-    float elapsedTimeBeforeEndScene = 0;
     bool raceActive = false;
 
     void Start()
@@ -140,10 +138,11 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
             racerStatus[i] = racers[i].GetComponent<ObjectiveCompleteLaps>();
             Debug.Log(i + " " + racerStatus[i] == null);
         }
-        Debug.Log("got " + racerStatus.Length + " player components, starting countdown");
+        Debug.Log("got " + racerStatus.Length + " players, starting countdown");
         raceCountdownTrigger.Play(); // race countdown animation
         StartCoroutine(CountdownThenStartRaceRoutine());
        // StartCoroutine(ShowObjectivesRoutine());
+         raceActive = true;
     }
 
     private void UnfreezeAndBegin() 
@@ -153,7 +152,6 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
             k.SetCanMove(true);
         }
         m_TimeManager.StartRace();
-        raceActive = true;
     }
 
     IEnumerator ShowObjectivesRoutine() {
@@ -171,85 +169,99 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
     void LateUpdate()
     {
 
-        if (gameState != GameState.Play)
-        {
-            elapsedTimeBeforeEndScene += Time.deltaTime;
-            if(elapsedTimeBeforeEndScene >= endSceneLoadDelay)
-            {
+        if (!raceActive) {return;}
+        if (!PhotonNetwork.IsMasterClient) {
+            return;
+        }
+        int nRacersFinished = 0;
+         foreach (ObjectiveCompleteLaps obj in racerStatus) {
+              Debug.Log(obj + " " + obj.currentLap);
+             if (obj.currentLap >= 4) { // 3 laps completed (+1 because at the start you cross the finish line)
+                   // done
+                   nRacersFinished++;
+            }
+          }
+        if (nRacersFinished == racerStatus.Length) {
+            ComputeTimes();
+            photonView.RPC("EndGame", RpcTarget.All, null);
+        }
+        
+    }
 
-                float timeRatio = 1 - (m_TimeLoadEndGameScene - Time.time) / endSceneLoadDelay;
-                endGameFadeCanvasGroup.alpha = timeRatio;
+    string getTimeString(float time){
+        int timeInt = (int)(time);
+        int minutes = timeInt / 60;
+        int seconds = timeInt % 60;
+        float fraction = (time * 100) % 100;
+        if (fraction > 99) fraction = 99;
+        return string.Format("{0}:{1:00}:{2:00}", minutes, seconds, fraction);
+    }
 
-                float volumeRatio = Mathf.Abs(timeRatio);
-                float volume = Mathf.Clamp(1 - volumeRatio, 0, 1);
-                AudioUtility.SetMasterVolume(volume);
+    private void ComputeTimes() {
+        string[] timeStrings = new string[4];
+        int[] idxes = new int[4];
+        for (int i = 0; i < 4; i++) {
+            idxes[i] = i;
+        }
 
-                // See if it's time to load the end scene (after the delay)
-                if (Time.time >= m_TimeLoadEndGameScene)
-                {
-                    SceneManager.LoadScene(m_SceneToLoad);
-                    gameState = GameState.Play;
-                }
+        float[] sums = new float[4];
+        float mintime = 999999999.0f;
+        for (int i = 0; i < 4; i++) {
+            sums[i] = mintime;
+        }
+        int minIdx = 0;
+        for (int i = 0; i < racerStatus.Length; i++) {
+            float sum = 0.0f;
+            foreach (float t in racerStatus[i].tdisp.finishedLapTimes) {
+                sum += t;
+            }
+            sums[i] = sum;
+            if (sum < mintime) {
+                minIdx = i;
+                mintime = sum;
             }
         }
-        else
-        {
-            if (raceActive) {
-                int nRacersFinished = 0;
-                foreach (ObjectiveCompleteLaps obj in racerStatus) {
-                    if (obj.currentLap == 4) { // 3 laps completed (+1 because at the start you cross the finish line)
-                        // done
-                        nRacersFinished++;
-                    }
+        System.Array.Sort(sums, idxes);
+        GameObject[] racers = GameObject.FindGameObjectsWithTag("NetPlayer");
+        for (int i = 0; i < 4; i++) {
+            Debug.Log("SUM: " + sums[i] +" i: " + i);
+            if (sums[i] < 999999999.0f) {
+                int idx = idxes[i];
+                if (idx < racers.Length && racers[idx] != null) {
+                    string ntext = racers[idx].GetComponent<VehCtrl>().nameText.text;
+                    string name = (string.IsNullOrEmpty(ntext) ? "UNNAMED" : ntext);
+                    timeStrings[i] = name + " " + getTimeString(sums[i]); 
+                } else {
+                    timeStrings[i] = "";
                 }
-
-               if (nRacersFinished == racerStatus.Length)
-                   EndGame(true);
-
+            } else {
+                timeStrings[i] = "";
             }
-            //if (m_ObjectiveManager.AreAllObjectivesCompleted())
+        }
 
-            if (m_TimeManager.IsFinite && m_TimeManager.IsOver)
-                EndGame(false);
+        photonView.RPC("UpdateTimes", RpcTarget.All, timeStrings);
+    }
+
+    [PunRPC]
+    public void UpdateTimes(string [] times)
+    {
+        for (int i = 0; i < 4; i++) {
+            GameSettings.finalTimes[i] = times[i];
         }
     }
 
-    void EndGame(bool win)
+    [PunRPC]
+    public void EndGame()
     {
-        raceActive = false;
         // unlocks the cursor before leaving the scene, to be able to click buttons
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
-
         m_TimeManager.StopRace();
 
-        // Remember that we need to load the appropriate end scene after a delay
-        gameState = win ? GameState.Won : GameState.Lost;
+        raceActive = false;
+     // Remember that we need to load the appropriate end scene after a delay
         endGameFadeCanvasGroup.gameObject.SetActive(true);
-        if (win)
-        {
-            m_SceneToLoad = winSceneName;
-            m_TimeLoadEndGameScene = Time.time + endSceneLoadDelay + delayBeforeFadeToBlack;
 
-            // play a sound on win
-            var audioSource = gameObject.AddComponent<AudioSource>();
-            audioSource.clip = victorySound;
-            audioSource.playOnAwake = false;
-            audioSource.outputAudioMixerGroup = AudioUtility.GetAudioGroup(AudioUtility.AudioGroups.HUDVictory);
-            audioSource.PlayScheduled(AudioSettings.dspTime + delayBeforeWinMessage);
-
-            // create a game message
-            winDisplayMessage.delayBeforeShowing = delayBeforeWinMessage;
-            winDisplayMessage.gameObject.SetActive(true);
-        }
-        else
-        {
-            m_SceneToLoad = loseSceneName;
-            m_TimeLoadEndGameScene = Time.time + endSceneLoadDelay + delayBeforeFadeToBlack;
-
-            // create a game message
-            loseDisplayMessage.delayBeforeShowing = delayBeforeWinMessage;
-            loseDisplayMessage.gameObject.SetActive(true);
-        }
+        PhotonNetwork.LoadLevel("EndScene");
     }
 }

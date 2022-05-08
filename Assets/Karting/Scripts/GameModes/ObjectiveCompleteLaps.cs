@@ -42,7 +42,7 @@ public class ObjectiveCompleteLaps : Objective
               return;
 
             currentLap++;
-            Debug.Log("crossed finish line " + currentLap);
+           // Debug.Log("crossed finish line " + currentLap);
 
             tdisp.OnUpdateLap();
 
