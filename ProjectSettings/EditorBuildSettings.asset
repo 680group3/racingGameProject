@@ -32,4 +32,7 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Karting/Scenes/JoinMenu.unity
     guid: ed6a2d5922252429583fb4917a8b33de
+  - enabled: 1
+    path: Assets/Karting/Scenes/EndScene.unity
+    guid: dcdbf0244f0874e5cad67b604bda53c1
   m_configObjects: {}
