@@ -1,6 +1,5 @@
 ﻿using UnityEngine;
 using Photon.Pun;
-using Assets.Karting.Scripts.KartSystems;
 
 namespace KartGame.KartSystems.Items
 {

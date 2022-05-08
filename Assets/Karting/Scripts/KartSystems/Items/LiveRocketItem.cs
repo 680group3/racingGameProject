@@ -1,5 +1,4 @@
 ﻿using UnityEngine;
-using Assets.Karting.Scripts.KartSystems;
 
 namespace KartGame.KartSystems.Items
 {
