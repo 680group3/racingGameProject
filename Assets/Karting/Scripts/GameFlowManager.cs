@@ -53,15 +53,24 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
     public bool autoFindKarts = true;
     public Racer playerKart;
 
+    public GameObject startButton;
+    public GameObject waitingLabel;
+
+    ObjectiveCompleteLaps[] racerStatus;
+
     Racer[] karts;
     ObjectiveManager m_ObjectiveManager;
     TimeManager m_TimeManager;
     float m_TimeLoadEndGameScene;
     string m_SceneToLoad;
     float elapsedTimeBeforeEndScene = 0;
+    bool raceActive = false;
 
     void Start()
     {
+        startButton.SetActive(false);
+        waitingLabel.SetActive(false);
+
         if (PhotonNetwork.IsConnected) {
             Debug.Log("Connected, starting game");
             object[] instanceData = new object[1];
@@ -72,6 +81,11 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
             //Vector3 randpos = new Vector3(Random.Range(minX, maxX), Random.Range(minY, maxY), Random.Range(minZ, maxZ));
             GameObject pl = PhotonNetwork.Instantiate(playerPrefabs[GameSettings.ColorID].name, startpos, Quaternion.identity, 0, instanceData);
 
+            if (PhotonNetwork.IsMasterClient) {
+                startButton.SetActive(true);
+            } else {
+                waitingLabel.SetActive(true);
+            }
         }
 
         if (autoFindKarts)
@@ -100,29 +114,46 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
         {
 			k.SetCanMove(false);
         }
-
-        //run race countdown animation
-        ShowRaceCountdownAnimation();
-        StartCoroutine(ShowObjectivesRoutine());
-
-        StartCoroutine(CountdownThenStartRaceRoutine());
+        raceActive = false;
     }
 
     IEnumerator CountdownThenStartRaceRoutine() {
         yield return new WaitForSeconds(3f);
-        StartRace();
+        UnfreezeAndBegin();
     }
 
-    void StartRace() {
+    public void BeginRace()
+    {
+        if (PhotonNetwork.IsMasterClient) {
+            photonView.RPC("StartRace", RpcTarget.All, null);
+        }
+    }
+
+    [PunRPC]
+    public void StartRace() {
+        startButton.SetActive(false);
+        waitingLabel.SetActive(false);
+        GameObject[] racers = GameObject.FindGameObjectsWithTag("NetPlayer");
+        racerStatus = new ObjectiveCompleteLaps[racers.Length];
+
+        for (int i = 0; i < racers.Length; i++) {
+            racerStatus[i] = racers[i].GetComponent<ObjectiveCompleteLaps>();
+            Debug.Log(i + " " + racerStatus[i] == null);
+        }
+        Debug.Log("got " + racerStatus.Length + " player components, starting countdown");
+        raceCountdownTrigger.Play(); // race countdown animation
+        StartCoroutine(CountdownThenStartRaceRoutine());
+       // StartCoroutine(ShowObjectivesRoutine());
+    }
+
+    private void UnfreezeAndBegin() 
+    {
         foreach (Racer k in karts)
         {
-			k.SetCanMove(true);
+            k.SetCanMove(true);
         }
         m_TimeManager.StartRace();
-    }
-
-    void ShowRaceCountdownAnimation() {
-        raceCountdownTrigger.Play();
+        raceActive = true;
     }
 
     IEnumerator ShowObjectivesRoutine() {
@@ -137,7 +168,7 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
     }
 
 
-    void Update()
+    void LateUpdate()
     {
 
         if (gameState != GameState.Play)
@@ -163,8 +194,20 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
         }
         else
         {
-            if (m_ObjectiveManager.AreAllObjectivesCompleted())
-                EndGame(true);
+            if (raceActive) {
+                int nRacersFinished = 0;
+                foreach (ObjectiveCompleteLaps obj in racerStatus) {
+                    if (obj.currentLap == 4) { // 3 laps completed (+1 because at the start you cross the finish line)
+                        // done
+                        nRacersFinished++;
+                    }
+                }
+
+               if (nRacersFinished == racerStatus.Length)
+                   EndGame(true);
+
+            }
+            //if (m_ObjectiveManager.AreAllObjectivesCompleted())
 
             if (m_TimeManager.IsFinite && m_TimeManager.IsOver)
                 EndGame(false);
@@ -173,6 +216,7 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
 
     void EndGame(bool win)
     {
+        raceActive = false;
         // unlocks the cursor before leaving the scene, to be able to click buttons
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;

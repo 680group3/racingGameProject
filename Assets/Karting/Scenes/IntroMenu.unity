@@ -866,6 +866,8 @@ PrefabInstance:
     - {fileID: 2451546363844311123, guid: 438386b7447e6482ea10cbf9ea8f6c3b, type: 3}
     - {fileID: 5879816176013052489, guid: 438386b7447e6482ea10cbf9ea8f6c3b, type: 3}
     - {fileID: 1637092053907686480, guid: 438386b7447e6482ea10cbf9ea8f6c3b, type: 3}
+    - {fileID: 4535552852324097325, guid: 438386b7447e6482ea10cbf9ea8f6c3b, type: 3}
+    - {fileID: 8256380778492309761, guid: 438386b7447e6482ea10cbf9ea8f6c3b, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 438386b7447e6482ea10cbf9ea8f6c3b, type: 3}
 --- !u!1 &160263376
 GameObject:
@@ -1116,6 +1118,8 @@ PrefabInstance:
     - {fileID: 2451546363844311123, guid: f0cfc50fa556e4356ba6aea500e17bbe, type: 3}
     - {fileID: 5879816176013052489, guid: f0cfc50fa556e4356ba6aea500e17bbe, type: 3}
     - {fileID: 1637092053907686480, guid: f0cfc50fa556e4356ba6aea500e17bbe, type: 3}
+    - {fileID: 2116312717525314763, guid: f0cfc50fa556e4356ba6aea500e17bbe, type: 3}
+    - {fileID: 6898436968289247437, guid: f0cfc50fa556e4356ba6aea500e17bbe, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: f0cfc50fa556e4356ba6aea500e17bbe, type: 3}
 --- !u!1 &247995403
 GameObject:
@@ -2318,6 +2322,8 @@ PrefabInstance:
     - {fileID: 2451546363844311123, guid: 20fdbf2cf1b09442eb56e780bca0f273, type: 3}
     - {fileID: 5879816176013052489, guid: 20fdbf2cf1b09442eb56e780bca0f273, type: 3}
     - {fileID: 1637092053907686480, guid: 20fdbf2cf1b09442eb56e780bca0f273, type: 3}
+    - {fileID: 5504336914671753164, guid: 20fdbf2cf1b09442eb56e780bca0f273, type: 3}
+    - {fileID: 7689829176558827749, guid: 20fdbf2cf1b09442eb56e780bca0f273, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 20fdbf2cf1b09442eb56e780bca0f273, type: 3}
 --- !u!1 &1108685844
 GameObject:
@@ -2759,9 +2765,9 @@ RectTransform:
   m_Father: {fileID: 1847275007}
   m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0}
-  m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -402, y: 421}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 84, y: -114}
   m_SizeDelta: {x: 50, y: 50}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!114 &1667991434
@@ -3418,6 +3424,8 @@ PrefabInstance:
     - {fileID: 2451546363844311123, guid: 69a948892f84742518f1f3dc5ed83472, type: 3}
     - {fileID: 5879816176013052489, guid: 69a948892f84742518f1f3dc5ed83472, type: 3}
     - {fileID: 1637092053907686480, guid: 69a948892f84742518f1f3dc5ed83472, type: 3}
+    - {fileID: 8225489014010408351, guid: 69a948892f84742518f1f3dc5ed83472, type: 3}
+    - {fileID: 6587957679005814509, guid: 69a948892f84742518f1f3dc5ed83472, type: 3}
   m_SourcePrefab: {fileID: 100100000, guid: 69a948892f84742518f1f3dc5ed83472, type: 3}
 --- !u!1 &1832755024
 GameObject:

@@ -12,14 +12,14 @@ public class ObjectiveCompleteLaps : Objective
     [Tooltip("Start sending notification about remaining laps when this amount of laps is left")]
     public int notificationLapsRemainingThreshold = 1;
 
-
+    public TimeDisplay tdisp;
     
     public int currentLap { get; private set; }
 
     void Awake()
     {
         currentLap = 0;
-        
+        tdisp = GetComponentInChildren<TimeDisplay>();
         // set a title and description specific for this type of objective, if it hasn't one
         if (string.IsNullOrEmpty(title))
             title = $"Complete {lapsToComplete} {targetName}s";
@@ -29,14 +29,28 @@ public class ObjectiveCompleteLaps : Objective
     IEnumerator Start()
     {
         TimeManager.OnSetTime(totalTimeInSecs, isTimed, gameMode);
-        TimeDisplay.OnSetLaps(lapsToComplete);
+        tdisp.OnSetLaps(lapsToComplete);
         yield return new WaitForEndOfFrame();
         Register();
     }
 
+    private void OnTriggerEnter(Collider other) {
+
+        if (other.gameObject.tag == "FinishLine") {
+           
+            if (isCompleted)
+              return;
+
+            currentLap++;
+            Debug.Log("crossed finish line " + currentLap);
+
+            tdisp.OnUpdateLap();
+
+        }
+    }
     protected override void ReachCheckpoint(int remaining)
     {
-
+/*
         if (isCompleted)
             return;
 
@@ -66,7 +80,7 @@ public class ObjectiveCompleteLaps : Objective
 
             UpdateObjective(string.Empty, GetUpdatedCounterAmount(), notificationText);
         }
-
+*/
     }
     
     public override string GetUpdatedCounterAmount()

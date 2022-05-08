@@ -21,9 +21,6 @@ namespace KartGame.Track
         [Tooltip("Finished lap info will be displayed under this parent.")]
         public UITable finishedLapsParent; 
 
-        public static Action OnUpdateLap;
-        public static Action<int> OnSetLaps;
-        
         private List<float> finishedLapTimes = new List<float>();
 
         private float currentLapStartTime;
@@ -41,7 +38,7 @@ namespace KartGame.Track
             lapsOver = false;
         }
 
-        void SetLaps(int laps)
+        public void OnSetLaps(int laps)
         {
 
             for (int i = 0; i < laps; i++)
@@ -56,8 +53,6 @@ namespace KartGame.Track
 
         void OnEnable()
         {
-            OnUpdateLap += UpdateLap;
-            OnSetLaps += SetLaps;
         }
 
         TimeDisplayItem GetItem(int i)
@@ -76,8 +71,6 @@ namespace KartGame.Track
         
         void OnDisable()
         {
-            OnUpdateLap -= UpdateLap;
-            OnSetLaps -= SetLaps;
         }
 
         int getBestLap()
@@ -91,7 +84,7 @@ namespace KartGame.Track
             return best;
         }
 
-        void UpdateLap()
+        public void OnUpdateLap()
         {
             if (lapsOver) return;
 
@@ -118,6 +111,9 @@ namespace KartGame.Track
 
         void Update()
         {
+            if (this.transform.parent.gameObject != VehCtrl.ourPlayer) {
+                this.transform.gameObject.SetActive(false);
+            }
             if (currentLapStartTime == 0) return;
             if (lapsOver) return;
             currentLapText.SetText(DisplayCurrentLapTime());
