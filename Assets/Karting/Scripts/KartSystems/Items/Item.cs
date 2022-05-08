@@ -8,7 +8,7 @@ namespace KartGame.KartSystems.Items
 
         public abstract void pickup(Racer racer);
 
-        private void OnTriggerEnter(Collider other)
+        public virtual void OnTriggerEnter(Collider other)
         {
             var rb = other.attachedRigidbody;
             if (rb)
