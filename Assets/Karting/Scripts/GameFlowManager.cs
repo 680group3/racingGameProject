@@ -175,7 +175,7 @@ public class GameFlowManager : MonoBehaviourPunCallbacks
         }
         int nRacersFinished = 0;
          foreach (ObjectiveCompleteLaps obj in racerStatus) {
-              Debug.Log(obj + " " + obj.currentLap);
+            //  Debug.Log(obj + " " + obj.currentLap);
              if (obj.currentLap >= 4) { // 3 laps completed (+1 because at the start you cross the finish line)
                    // done
                    nRacersFinished++;

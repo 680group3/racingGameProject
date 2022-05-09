@@ -12,5 +12,10 @@ namespace KartGame.KartSystems.Items
         {
             racer.getMrig().AddRelativeForce(Vector3.forward * this.boostStrength, ForceMode.Impulse);
         }
+
+        public override void pickup(Racer racer)
+        {
+            racer.speedPickup();
+        }
     }
 }
