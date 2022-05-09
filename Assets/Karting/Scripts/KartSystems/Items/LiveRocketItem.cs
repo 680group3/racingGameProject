@@ -1,4 +1,6 @@
 ﻿using UnityEngine;
+using Photon.Pun;
+using ExitGames.Client.Photon;
 
 namespace KartGame.KartSystems.Items
 {
@@ -6,15 +8,15 @@ namespace KartGame.KartSystems.Items
     {
         [SerializeField]
         private float speed = 55.0f;
-        public Racer owner;
+        public int owner;
 
         public override void activate(Racer racer)
         {
-            float magnitude = 10.0f;
+            float magnitude = 1.0f;
             // racer.getMrig().AddExplosionForce(50000000.0f, racer.transform.position, 50.0f);
             // racer.getMrig().AddRelativeTorque(Vector3.left * 9999999999.0f, ForceMode.Impulse);
             // racer.getMrig().AddRelativeForce(Vector3.forward * magnitude, ForceMode.Impulse);
-            racer.getMrig().AddExplosionForce(magnitude, racer.getMrig().transform.position, magnitude, magnitude, ForceMode.Impulse);
+            racer.getMrig().AddExplosionForce(magnitude, racer.getMrig().transform.position, magnitude, 0.0f, ForceMode.Impulse);
         }
 
         public override void pickup(Racer racer)
@@ -32,7 +34,8 @@ namespace KartGame.KartSystems.Items
             if (rb)
             {
                 var racer = rb.GetComponent<Racer>();
-                if (racer && !racer.Equals(owner))
+                Debug.Log(racer.gameObject.GetInstanceID());
+                if (racer && racer.gameObject.GetInstanceID() != owner)
                 {
                     this.pickup(racer);
                     this.gameObject.SetActive(false);
