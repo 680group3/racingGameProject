@@ -12,8 +12,8 @@ namespace KartGame.KartSystems.Items
             Rigidbody mrig = racer.getMrig();
             Quaternion rotation = mrig.transform.rotation * Quaternion.Euler(90, 0, 0);
             GameObject rocket = PhotonNetwork.Instantiate(prefab.name, mrig.transform.position, rotation, 0);
-            rocket.GetComponent<LiveRocketItem>().owner = racer.gameObject.GetInstanceID();
-            Debug.Log(racer.gameObject.GetInstanceID());
+            rocket.GetComponent<LiveRocketItem>().owner = PhotonView.Get(racer).ViewID;
+            Debug.Log("Firing rocket from " + rocket.GetComponent<LiveRocketItem>().owner);
         }
 
         public override void pickup(Racer racer)

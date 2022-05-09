@@ -16,7 +16,8 @@ namespace KartGame.KartSystems.Items
             // racer.getMrig().AddExplosionForce(50000000.0f, racer.transform.position, 50.0f);
             // racer.getMrig().AddRelativeTorque(Vector3.left * 9999999999.0f, ForceMode.Impulse);
             // racer.getMrig().AddRelativeForce(Vector3.forward * magnitude, ForceMode.Impulse);
-            racer.getMrig().AddExplosionForce(magnitude, racer.getMrig().transform.position, magnitude, 0.0f, ForceMode.Impulse);
+            racer.getMrig().AddRelativeForce(Vector3.up * magnitude, ForceMode.Impulse);
+            // racer.getMrig().AddExplosionForce(magnitude, racer.getMrig().transform.position, magnitude, 0.0f, ForceMode.Impulse);
         }
 
         public override void pickup(Racer racer)
@@ -34,8 +35,8 @@ namespace KartGame.KartSystems.Items
             if (rb)
             {
                 var racer = rb.GetComponent<Racer>();
-                Debug.Log(racer.gameObject.GetInstanceID());
-                if (racer && racer.gameObject.GetInstanceID() != owner)
+                Debug.Log("Colliding with " + PhotonView.Get(racer).ViewID);
+                if (racer && PhotonView.Get(racer).ViewID != owner)
                 {
                     this.pickup(racer);
                     this.gameObject.SetActive(false);
