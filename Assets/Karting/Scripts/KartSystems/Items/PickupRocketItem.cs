@@ -13,6 +13,7 @@ namespace KartGame.KartSystems.Items
             Quaternion rotation = mrig.transform.rotation * Quaternion.Euler(90, 0, 0);
             GameObject rocket = PhotonNetwork.Instantiate(prefab.name, mrig.transform.position, rotation, 0);
             rocket.GetComponent<LiveRocketItem>().owner = PhotonView.Get(racer).ViewID;
+            rocket.GetComponent<LiveRocketItem>().spawnTime = PhotonNetwork.Time;
             Debug.Log("Firing rocket from " + rocket.GetComponent<LiveRocketItem>().owner);
         }
 

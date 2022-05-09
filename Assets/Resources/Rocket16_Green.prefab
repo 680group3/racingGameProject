@@ -101,6 +101,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 55
   owner: 0
+  spawnTime: 0
 --- !u!65 &3946925534891199286
 BoxCollider:
   m_ObjectHideFlags: 0

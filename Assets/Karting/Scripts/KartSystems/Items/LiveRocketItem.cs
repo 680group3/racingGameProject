@@ -9,6 +9,7 @@ namespace KartGame.KartSystems.Items
         [SerializeField]
         private float speed = 55.0f;
         public int owner;
+        public double spawnTime;
 
         public override void activate(Racer racer)
         {
@@ -23,6 +24,7 @@ namespace KartGame.KartSystems.Items
 
         void Update()
         {
+             float dt = (float)( PhotonNetwork.Time - spawnTime );
             transform.Translate(Vector3.up * speed * Time.deltaTime);
         }
 
@@ -30,16 +32,22 @@ namespace KartGame.KartSystems.Items
         {
             var rb = other.attachedRigidbody;
             if (rb)
-            {
+            { // wild hacks
                 var racer = rb.GetComponent<Racer>();
                 PhotonView pv = PhotonView.Get(racer);
+                if (!pv.IsMine) { return; }
                 Debug.Log("Colliding with " + pv.ViewID);
                 if (racer && pv.ViewID != owner)
                 {
-                    this.activate(racer);
+                    PhotonView photonView = other.gameObject.GetComponentInParent(typeof(PhotonView)) as PhotonView;
+                    Racer r2 = photonView.gameObject.GetComponentInParent(typeof(Racer)) as Racer;
+                 this.activate(r2);
                     this.gameObject.SetActive(false);
+                    
                 }
             }
+
         }
+
     }
 }
