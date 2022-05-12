@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2047336664104694661}
   - component: {fileID: 2047336664104694660}
   - component: {fileID: 2047336664104694667}
-  - component: {fileID: 1957102644646649599}
+  - component: {fileID: -7098136738152727834}
   m_Layer: 0
   m_Name: SpeedPad
   m_TagString: Untagged
@@ -101,7 +101,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1957102644646649599
+--- !u!114 &-7098136738152727834
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -110,32 +110,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 2047336664104694665}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3eb90679940aa4f70846b5eeaf547397, type: 3}
+  m_Script: {fileID: 11500000, guid: 292ae3acf2e25254a822a24f673cfc02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  boostStats:
-    modifiers:
-      TopSpeed: 7
-      Acceleration: 10
-      ReverseSpeed: 0
-      ReverseAcceleration: 0
-      AccelerationCurve: 0
-      Braking: 0
-      CoastingDrag: 0
-      Grip: 0
-      Steer: 0
-      AddedGravity: 0
-    PowerUpID: 
-    ElapsedTime: 0
-    MaxTime: 5
-  cooldown: 5
-  disableGameObjectWhenActivated: 1
-  onPowerupActivated:
-    m_PersistentCalls:
-      m_Calls: []
-  onPowerupFinishCooldown:
-    m_PersistentCalls:
-      m_Calls: []
+  boostStrength: 50000
 --- !u!1001 &379603495342418371
 PrefabInstance:
   m_ObjectHideFlags: 0
