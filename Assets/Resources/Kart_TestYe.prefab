@@ -517,6 +517,7 @@ MonoBehaviour:
   displayMessage: {fileID: 6898436968289247437}
   lapsToComplete: 3
   notificationLapsRemainingThreshold: 1
+  tdisp: {fileID: 0}
 --- !u!114 &6898436968289247437
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1157,6 +1158,7 @@ MonoBehaviour:
   bestLapText: {fileID: 820006355739837424}
   timeDisplayItem: {fileID: 11400000, guid: 662878078edcd354991f5fbb8c48cb2e, type: 2}
   finishedLapsParent: {fileID: 3898490978849882311}
+  finishedLapTimes: []
 --- !u!1 &4762223329556766639
 GameObject:
   m_ObjectHideFlags: 0
