@@ -53,7 +53,7 @@ public class HostSettingsMenu : MonoBehaviourPunCallbacks
 		Debug.Log(GameSettings.GamePassword);
 		GameSettings.MapID = (int) Mathf.Clamp(GameSettings.MapID, 0, 2);
 		PhotonNetwork.NickName = GameSettings.Username;
-		PhotonNetwork.CreateRoom(GameSettings.GamePassword, new RoomOptions { MaxPlayers = (byte) GameSettings.MaxPlayers });
+		PhotonNetwork.CreateRoom(GameSettings.GamePassword, new RoomOptions { MaxPlayers = (byte) (GameSettings.MaxPlayers + 1) });
 	}
 
 	public override void OnJoinedRoom()
